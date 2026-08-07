@@ -4,6 +4,12 @@
 plugin by WariKoda. It displays a configurable product image when a visitor
 hovers a product box with a mouse or a hovering pen.
 
+## Demo
+
+[![Product Hover Image effect in a Shopware product listing](docs/product-hover-image-demo.gif)](docs/product-hover-image-demo.mp4)
+
+Click the preview to watch the MP4 video.
+
 ## Features
 
 - Listing, CMS product boxes and sliders, cross-selling, customer wishlist, and guest wishlist
