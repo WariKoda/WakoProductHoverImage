@@ -1,0 +1,9 @@
+{% sw_extends '@Storefront/storefront/base.html.twig' %}
+
+{% block base_body_classes %}
+    {% set currentRoute = activeRoute|default('') %}
+    {{ parent() }}
+    {% if config('WakoProductHoverImage.config.enabled') is same as(true)
+        and not (currentRoute starts with 'frontend.search.' or currentRoute starts with 'widgets.search.')
+    %} is-wako-product-hover-image-enabled{% endif %}
+{% endblock %}

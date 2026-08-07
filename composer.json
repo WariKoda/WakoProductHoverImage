@@ -1,0 +1,58 @@
+{
+    "name": "wako/product-hover-image",
+    "description": "Adds configurable lazy-loaded hover images to Shopware product boxes.",
+    "type": "shopware-platform-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "WariKoda",
+            "role": "Manufacturer"
+        },
+        {
+            "name": "Niklas Braun",
+            "role": "Lead Developer"
+        }
+    ],
+    "require": {
+        "shopware/core": "~6.7.10",
+        "shopware/storefront": "~6.7.10"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "WakoProductHoverImage\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WakoProductHoverImage\\Tests\\Unit\\": "tests/unit/"
+        }
+    },
+    "scripts": {
+        "analyse": "phpstan analyse src tests/unit --level=max --memory-limit=1G",
+        "test:unit": "phpunit -c phpunit.xml.dist"
+    },
+    "extra": {
+        "shopware-plugin-class": "WakoProductHoverImage\\WakoProductHoverImage",
+        "label": {
+            "de-DE": "Produktbild bei Hover",
+            "en-GB": "Product Hover Image"
+        },
+        "description": {
+            "de-DE": "Lädt ein konfigurierbares Hoverbild in Produktboxen erst bei Bedarf nach.",
+            "en-GB": "Lazy-loads a configurable hover image in product boxes only when needed."
+        },
+        "manufacturer": {
+            "de-DE": "WariKoda",
+            "en-GB": "WariKoda"
+        },
+        "manufacturerLink": {
+            "de-DE": "https://github.com/WariKoda",
+            "en-GB": "https://github.com/WariKoda"
+        }
+    }
+}

@@ -1,0 +1,7 @@
+/vendor/
+/composer.lock
+/src/Resources/app/storefront/node_modules/
+.DS_Store
+.idea/
+*.cache
+coverage.xml

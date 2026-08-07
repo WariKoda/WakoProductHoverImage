@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="WakoProductHoverImage\Service\ProductHoverImageConfig">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+        </service>
+
+        <service id="WakoProductHoverImage\Service\ProductBoxMediaCriteria"/>
+
+        <service id="WakoProductHoverImage\Subscriber\ProductBoxMediaCriteriaSubscriber">
+            <argument type="service" id="WakoProductHoverImage\Service\ProductHoverImageConfig"/>
+            <argument type="service" id="WakoProductHoverImage\Service\ProductBoxMediaCriteria"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="WakoProductHoverImage\Subscriber\CmsProductBoxMediaCriteriaSubscriber">
+            <argument type="service" id="WakoProductHoverImage\Service\ProductHoverImageConfig"/>
+            <argument type="service" id="WakoProductHoverImage\Service\ProductBoxMediaCriteria"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="WakoProductHoverImage\Subscriber\VariantParentMediaSubscriber">
+            <argument type="service" id="WakoProductHoverImage\Service\ProductHoverImageConfig"/>
+            <argument type="service" id="WakoProductHoverImage\Service\ProductBoxMediaCriteria"/>
+            <argument type="service" id="product.repository"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+    </services>
+</container>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+    <card>
+        <title>Product hover image</title>
+        <title lang="de-DE">Produktbild bei Hover</title>
+
+        <input-field type="bool" cache-relevant="true">
+            <name>enabled</name>
+            <label>Enable product hover images</label>
+            <label lang="de-DE">Produkt-Hoverbilder aktivieren</label>
+            <helpText>Images are requested only after an allowed hover with a fine pointer.</helpText>
+            <helpText lang="de-DE">Bilder werden erst nach einem zulässigen Hover mit einem präzisen Zeigegerät angefordert.</helpText>
+            <defaultValue>false</defaultValue>
+        </input-field>
+
+        <input-field type="single-select" cache-relevant="true">
+            <name>selectionStrategy</name>
+            <label>Hover image selection</label>
+            <label lang="de-DE">Auswahl des Hoverbildes</label>
+            <helpText>The custom-field strategy uses the generated product field “Hover image” and accepts assigned product media only.</helpText>
+            <helpText lang="de-DE">Die Custom-Field-Strategie verwendet das erzeugte Produktfeld „Hoverbild“ und akzeptiert nur zugewiesene Produktmedien.</helpText>
+            <options>
+                <option>
+                    <id>second_media</id>
+                    <name>Second media item</name>
+                    <name lang="de-DE">Zweites Medium</name>
+                </option>
+                <option>
+                    <id>first_non_cover</id>
+                    <name>First media item different from the cover</name>
+                    <name lang="de-DE">Erstes vom Cover abweichendes Medium</name>
+                </option>
+                <option>
+                    <id>configured_position</id>
+                    <name>Configured media position</name>
+                    <name lang="de-DE">Konfigurierte Medienposition</name>
+                </option>
+                <option>
+                    <id>custom_field</id>
+                    <name>Media selected in the product custom field</name>
+                    <name lang="de-DE">Medium aus dem Produkt-Custom-Field</name>
+                </option>
+                <option>
+                    <id>next_valid_image</id>
+                    <name>Next valid image after the cover</name>
+                    <name lang="de-DE">Nächstes gültiges Bild nach dem Cover</name>
+                </option>
+            </options>
+            <defaultValue>second_media</defaultValue>
+        </input-field>
+
+        <input-field type="int" cache-relevant="true">
+            <name>mediaPosition</name>
+            <label>Media position (1–20)</label>
+            <label lang="de-DE">Medienposition (1–20)</label>
+            <helpText>Used only with “Configured media position”. Positions are counted from one.</helpText>
+            <helpText lang="de-DE">Wird nur bei „Konfigurierte Medienposition“ verwendet. Die Zählung beginnt bei eins.</helpText>
+            <defaultValue>2</defaultValue>
+            <min>1</min>
+            <max>20</max>
+            <step>1</step>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Interaction and animation</title>
+        <title lang="de-DE">Interaktion und Animation</title>
+
+        <input-field type="int" cache-relevant="true">
+            <name>hoverDelay</name>
+            <label>Hover delay in milliseconds (0–500)</label>
+            <label lang="de-DE">Hover-Verzögerung in Millisekunden (0–500)</label>
+            <helpText>Delays materialization and prevents accidental image requests.</helpText>
+            <helpText lang="de-DE">Verzögert die Materialisierung und verhindert unbeabsichtigte Bildanfragen.</helpText>
+            <defaultValue>100</defaultValue>
+            <min>0</min>
+            <max>500</max>
+            <step>1</step>
+        </input-field>
+
+        <input-field type="int" cache-relevant="true">
+            <name>transitionDuration</name>
+            <label>Fade duration in milliseconds (0–500)</label>
+            <label lang="de-DE">Überblenddauer in Millisekunden (0–500)</label>
+            <defaultValue>200</defaultValue>
+            <min>0</min>
+            <max>500</max>
+            <step>1</step>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Storefront contexts</title>
+        <title lang="de-DE">Storefront-Kontexte</title>
+
+        <input-field type="bool" cache-relevant="true">
+            <name>enableListing</name>
+            <label>Category and product listings</label>
+            <label lang="de-DE">Kategorie- und Produktlistings</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="bool" cache-relevant="true">
+            <name>enableCrossSelling</name>
+            <label>Cross-selling</label>
+            <label lang="de-DE">Cross-Selling</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="bool" cache-relevant="true">
+            <name>enableWishlist</name>
+            <label>Wishlists</label>
+            <label lang="de-DE">Wunschlisten</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+
+        <input-field type="bool" cache-relevant="true">
+            <name>enableCms</name>
+            <label>CMS product boxes and product sliders</label>
+            <label lang="de-DE">CMS-Produktboxen und Produkt-Slider</label>
+            <defaultValue>true</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Variants</title>
+        <title lang="de-DE">Varianten</title>
+
+        <input-field type="single-select" cache-relevant="true">
+            <name>variantMediaMode</name>
+            <label>Variant media behavior</label>
+            <label lang="de-DE">Verhalten bei Variantenmedien</label>
+            <options>
+                <option>
+                    <id>inherit</id>
+                    <name>Use Shopware inheritance</name>
+                    <name lang="de-DE">Shopware-Vererbung verwenden</name>
+                </option>
+                <option>
+                    <id>variant_only</id>
+                    <name>Use only media assigned to the variant</name>
+                    <name lang="de-DE">Nur der Variante zugewiesene Medien</name>
+                </option>
+                <option>
+                    <id>parent_fallback</id>
+                    <name>Variant media with parent fallback</name>
+                    <name lang="de-DE">Variantenmedien mit Parent-Fallback</name>
+                </option>
+            </options>
+            <defaultValue>inherit</defaultValue>
+        </input-field>
+    </card>
+</config>

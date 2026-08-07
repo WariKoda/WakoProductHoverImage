@@ -1,0 +1,147 @@
+{% sw_extends '@Storefront/storefront/component/product/card/box-standard.html.twig' %}
+
+{% block component_product_box_image_inner %}
+    {{ parent() }}
+
+    {% set currentRoute = app.request.attributes.get('_route')|default('') %}
+    {% set selectionStrategy = config('WakoProductHoverImage.config.selectionStrategy') %}
+    {% if selectionStrategy not in ['second_media', 'first_non_cover', 'configured_position', 'custom_field', 'next_valid_image'] %}
+        {% set selectionStrategy = 'second_media' %}
+    {% endif %}
+
+    {% set variantMediaMode = config('WakoProductHoverImage.config.variantMediaMode') %}
+    {% if variantMediaMode not in ['inherit', 'variant_only', 'parent_fallback'] %}
+        {% set variantMediaMode = 'inherit' %}
+    {% endif %}
+
+    {% set mediaScopes = [] %}
+    {% set effectiveProductMedia = product.media|default([]) %}
+    {% if product.parentId and variantMediaMode == 'variant_only' %}
+        {% set mediaScopes = [{ owner: product, items: effectiveProductMedia|filter(item => item.productId == product.id) }] %}
+    {% elseif product.parentId and variantMediaMode == 'parent_fallback' %}
+        {% set mediaScopes = [{ owner: product, items: effectiveProductMedia|filter(item => item.productId == product.id) }] %}
+        {% set hoverImageParent = product.extensions.wakoProductHoverImageParent|default(null) %}
+        {% if hoverImageParent %}
+            {% set mediaScopes = mediaScopes|merge([{ owner: hoverImageParent, items: hoverImageParent.media|default([]) }]) %}
+        {% endif %}
+    {% else %}
+        {% set mediaScopes = [{ owner: product, items: effectiveProductMedia }] %}
+    {% endif %}
+
+    {% set configuredPosition = config('WakoProductHoverImage.config.mediaPosition') %}
+    {% set configuredPosition = configuredPosition is same as(null) ? 2 : configuredPosition %}
+    {% set configuredPosition = configuredPosition < 1 ? 1 : (configuredPosition > 20 ? 20 : configuredPosition) %}
+    {% set selectedProductMedia = null %}
+
+    {% for mediaScope in mediaScopes %}
+        {% if selectedProductMedia is null %}
+            {% set sortedProductMedia = mediaScope.items|sort((left, right) =>
+                left.position == right.position
+                    ? left.id <=> right.id
+                    : left.position <=> right.position
+            ) %}
+            {% set candidate = null %}
+
+            {% if selectionStrategy == 'second_media' %}
+                {% set candidate = sortedProductMedia|slice(1, 1)|first %}
+            {% elseif selectionStrategy == 'configured_position' %}
+                {% set candidate = sortedProductMedia|slice(configuredPosition - 1, 1)|first %}
+            {% elseif selectionStrategy == 'custom_field' %}
+                {% set customFieldMediaId = mediaScope.owner.translated.customFields.wako_product_hover_image_media_id|default(null) %}
+                {% for productMedia in sortedProductMedia %}
+                    {% if candidate is null and customFieldMediaId and productMedia.mediaId == customFieldMediaId %}
+                        {% set candidate = productMedia %}
+                    {% endif %}
+                {% endfor %}
+            {% elseif selectionStrategy == 'first_non_cover' %}
+                {% for productMedia in sortedProductMedia %}
+                    {% if candidate is null
+                        and productMedia.id != product.coverId
+                        and productMedia.mediaId != cover.id
+                        and productMedia.media
+                        and productMedia.media.url
+                        and productMedia.media.getMediaType()
+                        and productMedia.media.getMediaType().getName() === 'IMAGE'
+                    %}
+                        {% set candidate = productMedia %}
+                    {% endif %}
+                {% endfor %}
+            {% elseif selectionStrategy == 'next_valid_image' %}
+                {% set coverInScope = sortedProductMedia|filter(item => item.id == product.coverId or item.mediaId == cover.id)|length > 0 %}
+                {% set coverReached = false %}
+                {% for productMedia in sortedProductMedia %}
+                    {% if productMedia.id == product.coverId or productMedia.mediaId == cover.id %}
+                        {% set coverReached = true %}
+                    {% elseif candidate is null
+                        and (coverReached or not coverInScope)
+                        and productMedia.media
+                        and productMedia.media.url
+                        and productMedia.media.getMediaType()
+                        and productMedia.media.getMediaType().getName() === 'IMAGE'
+                    %}
+                        {% set candidate = productMedia %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {% set candidateMedia = candidate ? candidate.media : null %}
+            {% if candidateMedia
+                and candidateMedia.url
+                and candidateMedia.getMediaType()
+                and candidateMedia.getMediaType().getName() === 'IMAGE'
+            %}
+                {% set selectedProductMedia = candidate %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    {% set hoverMedia = selectedProductMedia ? selectedProductMedia.media : null %}
+    {% if config('WakoProductHoverImage.config.enabled') is same as(true)
+        and not (currentRoute starts with 'frontend.search.' or currentRoute starts with 'widgets.search.')
+        and cover
+        and cover.url
+        and cover.getMediaType()
+        and cover.getMediaType().getName() === 'IMAGE'
+        and hoverMedia
+    %}
+        {% set hoverImageAttributes = {
+            class: 'product-image cover-switch wako-product-hover-image is-' ~ displayMode,
+            alt: '',
+            'aria-hidden': 'true',
+            decoding: 'async'
+        } %}
+
+        {% if displayMode == 'cover' or displayMode == 'contain' %}
+            {% set hoverImageAttributes = hoverImageAttributes|merge({ 'data-object-fit': displayMode }) %}
+        {% endif %}
+
+        {% set hoverDelay = config('WakoProductHoverImage.config.hoverDelay') %}
+        {% set hoverDelay = hoverDelay is same as(null) ? 100 : hoverDelay %}
+        {% set hoverDelay = hoverDelay < 0 ? 0 : (hoverDelay > 500 ? 500 : hoverDelay) %}
+        {% set transitionDuration = config('WakoProductHoverImage.config.transitionDuration') %}
+        {% set transitionDuration = transitionDuration is same as(null) ? 200 : transitionDuration %}
+        {% set transitionDuration = transitionDuration < 0 ? 0 : (transitionDuration > 500 ? 500 : transitionDuration) %}
+        {% set listingConfig = config('WakoProductHoverImage.config.enableListing') %}
+        {% set crossSellingConfig = config('WakoProductHoverImage.config.enableCrossSelling') %}
+        {% set wishlistConfig = config('WakoProductHoverImage.config.enableWishlist') %}
+        {% set cmsConfig = config('WakoProductHoverImage.config.enableCms') %}
+
+        <div class="wako-product-hover-image-container"
+             data-wako-product-hover-image
+             data-wako-hover-delay="{{ hoverDelay }}"
+             data-wako-transition-duration="{{ transitionDuration }}"
+             data-wako-enable-listing="{{ listingConfig is same as(null) or listingConfig is same as(true) ? '1' : '0' }}"
+             data-wako-enable-cross-selling="{{ crossSellingConfig is same as(null) or crossSellingConfig is same as(true) ? '1' : '0' }}"
+             data-wako-enable-wishlist="{{ wishlistConfig is same as(null) or wishlistConfig is same as(true) ? '1' : '0' }}"
+             data-wako-enable-cms="{{ cmsConfig is same as(null) or cmsConfig is same as(true) ? '1' : '0' }}">
+            <template class="wako-product-hover-image-template"
+                      data-wako-product-hover-image-template>
+                {% sw_thumbnails 'wako-product-hover-image-thumbnails' with {
+                    media: hoverMedia,
+                    sizes: sizes,
+                    attributes: hoverImageAttributes
+                } %}
+            </template>
+        </div>
+    {% endif %}
+{% endblock %}
