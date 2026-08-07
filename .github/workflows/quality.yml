@@ -1,0 +1,92 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: PHP (${{ matrix.dependencies }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dependencies: lowest
+            composer-options: '--prefer-lowest'
+          - dependencies: highest
+            composer-options: ''
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, intl, mbstring, pdo_mysql, sodium, xml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        env:
+          COMPOSER_OPTIONS: ${{ matrix.composer-options }}
+        run: composer update --no-interaction --no-progress --prefer-dist --no-plugins ${COMPOSER_OPTIONS}
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit -c phpunit.xml.dist
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse src tests/unit --level=max --memory-limit=1G --no-progress
+
+  storefront:
+    name: Storefront
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, intl, mbstring, pdo_mysql, sodium, xml, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Install Shopware sources
+        run: composer update --no-interaction --no-progress --prefer-dist --no-plugins --no-dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Storefront dependencies
+        working-directory: vendor/shopware/storefront/Resources/app/storefront
+        run: npm ci
+
+      - name: Run Jest
+        working-directory: vendor/shopware/storefront/Resources/app/storefront
+        run: npx jest --config "$GITHUB_WORKSPACE/src/Resources/app/storefront/jest.config.js" --runInBand
+
+      - name: Run ESLint
+        working-directory: vendor/shopware/storefront/Resources/app/storefront
+        run: npx eslint --no-error-on-unmatched-pattern --report-unused-disable-directives "$GITHUB_WORKSPACE/src/Resources/app/storefront/src" "$GITHUB_WORKSPACE/src/Resources/app/storefront/test"
+
+      - name: Run Stylelint
+        working-directory: vendor/shopware/storefront/Resources/app/storefront
+        run: npx stylelint --config stylelint.config.js "$GITHUB_WORKSPACE/src/Resources/app/storefront/src/**/*.scss"

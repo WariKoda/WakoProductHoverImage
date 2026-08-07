@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-## 1.0.0 - Unreleased
+## 1.0.0 - 2026-08-07
 
 - Added Sales-Channel-specific activation through Shopware system configuration.
 - Added five deterministic media-selection strategies for listings, CMS product boxes and sliders, cross-selling, and wishlists.
