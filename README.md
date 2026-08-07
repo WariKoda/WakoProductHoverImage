@@ -137,4 +137,4 @@ Shopware and exposes no additional product-data endpoint.
 
 ## License
 
-This plugin is licensed under the MIT License. See `LICENSE` and `NOTICE.md`.
+This plugin is licensed under the MIT License. See `LICENSE`.

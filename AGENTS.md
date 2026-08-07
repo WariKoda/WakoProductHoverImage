@@ -48,5 +48,4 @@ requested before the delay.
 
 ## Release provenance
 
-The plugin is licensed under MIT. Preserve `LICENSE` and `NOTICE.md` in every
-release artifact.
+The plugin is licensed under MIT. Preserve `LICENSE` in every release artifact.
