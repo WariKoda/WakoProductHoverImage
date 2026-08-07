@@ -121,8 +121,8 @@ cd ../../../vendor/shopware/storefront/Resources/app/storefront
 npm ci
 npx jest --config ../../../../../../custom/plugins/WakoProductHoverImage/src/Resources/app/storefront/jest.config.js --runInBand
 
-# Production assets
-./storefront-build.sh
+# Production assets from custom/plugins/WakoProductHoverImage
+../../../bin/build-storefront.sh
 ```
 
 Also run the project's PHPStan, ECS, Storefront ESLint, and Stylelint tooling.
