@@ -52,6 +52,15 @@ Open **Extensions > My extensions > Product Hover Image > Configuration** and
 enable the option globally or for selected Sales Channels. It is disabled by
 default.
 
+## Uninstallation
+
+```bash
+bin/console plugin:uninstall WakoProductHoverImage
+```
+
+This removes the generated custom-field set and its product assignments. Add
+`--keep-user-data` to preserve them for a later reinstallation.
+
 ## Configuration
 
 The selection strategy can use:

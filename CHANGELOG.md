@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.0.1 - 2026-08-09
+
+- Fixed the GitHub Actions ESLint step so it checks the plugin's JavaScript files and fails on warnings.
+- Added removal of the generated custom-field set and its product assignments when the plugin is uninstalled without preserving user data.
+
 ## 1.0.0 - 2026-08-07
 
 - Added Sales-Channel-specific activation through Shopware system configuration.

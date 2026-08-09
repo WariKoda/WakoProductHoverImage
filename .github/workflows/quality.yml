@@ -85,7 +85,11 @@ jobs:
 
       - name: Run ESLint
         working-directory: vendor/shopware/storefront/Resources/app/storefront
-        run: npx eslint --no-error-on-unmatched-pattern --report-unused-disable-directives "$GITHUB_WORKSPACE/src/Resources/app/storefront/src" "$GITHUB_WORKSPACE/src/Resources/app/storefront/test"
+        run: |
+          lint_root="custom-plugins/wako-product-hover-image"
+          mkdir -p "$lint_root"
+          cp -R "$GITHUB_WORKSPACE/src/Resources/app/storefront/src" "$GITHUB_WORKSPACE/src/Resources/app/storefront/test" "$lint_root/"
+          npx eslint --max-warnings 0 --report-unused-disable-directives --no-warn-ignored "$lint_root/src" "$lint_root/test"
 
       - name: Run Stylelint
         working-directory: vendor/shopware/storefront/Resources/app/storefront

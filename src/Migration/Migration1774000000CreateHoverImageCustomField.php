@@ -7,7 +7,7 @@ use Shopware\Core\Framework\Migration\MigrationStep;
 
 final class Migration1774000000CreateHoverImageCustomField extends MigrationStep
 {
-    private const SET_ID = 'e52eb587c1124c8a9f5ad70ee79578e8';
+    public const CUSTOM_FIELD_SET_ID = 'e52eb587c1124c8a9f5ad70ee79578e8';
 
     private const FIELD_ID = 'ad6a224f991e4330a97eb70510e847e1';
 
@@ -28,7 +28,7 @@ final class Migration1774000000CreateHoverImageCustomField extends MigrationStep
                     (UNHEX(:id), :name, :config, 1, NOW(3))
                 SQL,
             [
-                'id' => self::SET_ID,
+                'id' => self::CUSTOM_FIELD_SET_ID,
                 'name' => 'wako_product_hover_image',
                 'config' => json_encode([
                     'label' => [
@@ -48,7 +48,7 @@ final class Migration1774000000CreateHoverImageCustomField extends MigrationStep
                 SQL,
             [
                 'id' => self::RELATION_ID,
-                'setId' => self::SET_ID,
+                'setId' => self::CUSTOM_FIELD_SET_ID,
             ],
         );
 
@@ -62,7 +62,7 @@ final class Migration1774000000CreateHoverImageCustomField extends MigrationStep
             [
                 'id' => self::FIELD_ID,
                 'name' => 'wako_product_hover_image_media_id',
-                'setId' => self::SET_ID,
+                'setId' => self::CUSTOM_FIELD_SET_ID,
                 'config' => json_encode([
                     'label' => [
                         'en-GB' => 'Hover image',
