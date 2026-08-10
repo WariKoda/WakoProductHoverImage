@@ -113,6 +113,62 @@ final class ProductHoverImageConfigTest extends TestCase
         self::assertFalse($config->needsParentMedia($this->context));
     }
 
+    #[DataProvider('loadingModes')]
+    public function testLoadingModeAcceptsWhitelistedValues(string $mode): void
+    {
+        $systemConfig = $this->createMock(SystemConfigService::class);
+        $systemConfig->expects(self::once())
+            ->method('get')
+            ->with(ProductHoverImageConfig::CONFIG_PREFIX . 'loadingMode', self::SALES_CHANNEL_ID)
+            ->willReturn($mode);
+
+        self::assertSame($mode, (new ProductHoverImageConfig($systemConfig))->getLoadingMode($this->context));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function loadingModes(): iterable
+    {
+        yield 'lazy' => [ProductHoverImageConfig::LOADING_MODE_LAZY];
+        yield 'on hover' => [ProductHoverImageConfig::LOADING_MODE_ON_HOVER];
+    }
+
+    #[DataProvider('invalidLoadingModes')]
+    public function testLoadingModeUsesLazyDefaultForMissingOrInvalidValues(mixed $value): void
+    {
+        $systemConfig = $this->createMock(SystemConfigService::class);
+        $systemConfig->method('get')->willReturn($value);
+
+        self::assertSame(
+            ProductHoverImageConfig::LOADING_MODE_LAZY,
+            (new ProductHoverImageConfig($systemConfig))->getLoadingMode($this->context),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function invalidLoadingModes(): iterable
+    {
+        yield 'missing' => [null];
+        yield 'unknown string' => ['eager'];
+        yield 'boolean' => [true];
+        yield 'integer' => [1];
+    }
+
+    public function testLoadingModeUsesLazyDefaultWithoutContextOrWhenConfigLookupFails(): void
+    {
+        $systemConfig = $this->createMock(SystemConfigService::class);
+        $systemConfig->expects(self::once())
+            ->method('get')
+            ->willThrowException(new \RuntimeException('Unavailable'));
+        $config = new ProductHoverImageConfig($systemConfig);
+
+        self::assertSame(ProductHoverImageConfig::LOADING_MODE_LAZY, $config->getLoadingMode(null));
+        self::assertSame(ProductHoverImageConfig::LOADING_MODE_LAZY, $config->getLoadingMode($this->context));
+    }
+
     public function testNumericValuesAreBoundedAndWrongTypesUseDefaults(): void
     {
         $systemConfig = $this->createMock(SystemConfigService::class);

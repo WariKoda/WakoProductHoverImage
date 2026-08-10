@@ -16,13 +16,14 @@ Click the preview to watch the MP4 video.
 - Standard, minimal, image, and wishlist product-box layouts
 - Sales-Channel-specific activation and settings
 - Five deterministic image-selection strategies
-- Configurable hover delay and fade duration
+- Native lazy loading by default, with optional loading on allowed hover
+- Configurable hover delay for loading on hover and configurable fade duration
 - Separate toggles for listings, CMS elements, cross-selling, and wishlists
 - Variant-only, Shopware-inheritance, and explicit parent-fallback modes
 - Product media selection through the generated `wako_product_hover_image_media_id` custom field
 - No additional HTTP endpoint or product-data request
-- Image URL remains inert until the first allowed hover
-- No image request for touch or keyboard interaction
+- Optional `on_hover` mode guarantees no image request before an allowed hover and its delay
+- Hover overlay is restricted to mouse and hovering-pen interaction; touch and keyboard do not activate it
 - Support for AJAX listings and dynamically replaced product boxes
 - Deterministic media order by `product_media.position`, then `product_media.id`
 - Existing media-association criteria from themes or plugins remain unchanged
@@ -63,6 +64,11 @@ This removes the generated custom-field set and its product assignments. Add
 
 ## Configuration
 
+The `loadingMode` setting controls request timing. Its default, `lazy`, renders
+the image directly with native `loading="lazy"`, so the browser decides when to
+request it. The alternative, `on_hover`, keeps the image inert until an allowed
+hover and the configured hover delay have elapsed.
+
 The selection strategy can use:
 
 1. exactly the second media item;
@@ -94,16 +100,20 @@ states remain unchanged. Partial-field criteria are skipped. These compatibility
 rules can intentionally result in no hover image when another extension supplies
 an incomplete media collection.
 
-## Pointer and lazy-loading behavior
+## Pointer and image-loading behavior
 
 A single delegated listener handles current and future `.product-box` elements.
-The image markup is stored in an inert `<template>`. It is cloned only after the
-configured hover delay for a mouse or a pen hovering without screen contact on a
-device that reports a fine hover pointer. Leaving before the delay cancels the
-operation, so no active image request is created. The cover stays visible until
-the image emits `load`. A failed image is removed and is not retried during that
-marker's DOM lifecycle. The fade duration is configurable; reduced-motion user
-preferences still disable the transition.
+In the default `lazy` mode, image markup is rendered directly with native
+`loading="lazy"`; the browser may therefore request it before any hover. In
+`on_hover` mode, the markup remains in an inert `<template>` and is cloned only
+after the configured delay for an allowed hover. Leaving before that delay
+cancels activation and guarantees that no image request is created.
+
+In both modes, the overlay appears only after the image has loaded successfully
+and a mouse or pen is hovering without screen contact on a device that reports a
+fine hover pointer. The cover remains visible otherwise. A failed image is
+removed and is not retried during that marker's DOM lifecycle. The fade duration
+is configurable; reduced-motion preferences disable the transition.
 
 ## Theme and plugin compatibility
 

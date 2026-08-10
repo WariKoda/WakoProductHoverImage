@@ -19,7 +19,6 @@ export default class ProductHoverImagePlugin extends Plugin {
     init() {
         this._onPointerOver = this._onPointerOver.bind(this);
         this._onPointerOut = this._onPointerOut.bind(this);
-        this._onProductBoxMutations = this._onProductBoxMutations.bind(this);
         this._listenerOptions = { passive: true };
         this._hoverMediaQuery = window.matchMedia?.(this.options.hoverMediaQuery) ?? null;
         this._activePointers = new Map();
@@ -27,9 +26,15 @@ export default class ProductHoverImagePlugin extends Plugin {
         this._readyProductBoxes = new Set();
         this._pendingHoverTimers = new Map();
         this._pendingImageListeners = new Set();
+        this._boundImages = new WeakMap();
+        this._trackedMarkers = new WeakMap();
         this._isDestroyed = false;
-        this._observedProductBox = null;
-        this._mutationObserver = new MutationObserver(this._onProductBoxMutations);
+        this._productBoxObservers = new Map();
+        this._documentMutationObserver = new MutationObserver(() => this._synchronizeObservedProductBoxes());
+        this._documentMutationObserver.observe(this.el, {
+            childList: true,
+            subtree: true,
+        });
 
         this.el.addEventListener('pointerover', this._onPointerOver, this._listenerOptions);
         this.el.addEventListener('pointerout', this._onPointerOut, this._listenerOptions);
@@ -53,7 +58,10 @@ export default class ProductHoverImagePlugin extends Plugin {
             image.removeEventListener('error', onError);
         });
         this._pendingImageListeners.clear();
-        this._stopObservingProductBox();
+        this._boundImages = new WeakMap();
+        this._trackedMarkers = new WeakMap();
+        this._documentMutationObserver.disconnect();
+        this._stopObservingProductBoxes();
     }
 
     _onPointerOver(event) {
@@ -80,8 +88,7 @@ export default class ProductHoverImagePlugin extends Plugin {
             && previousProductBox !== productBox
             && ![...this._activePointers.values()].includes(previousProductBox)
         ) {
-            previousProductBox.classList.remove(this.options.activeClass);
-            this._cancelHover(previousProductBox);
+            this._releaseProductBox(previousProductBox);
         }
 
         const marker = productBox.querySelector(this.options.markerSelector);
@@ -115,48 +122,44 @@ export default class ProductHoverImagePlugin extends Plugin {
         }
 
         if (![...this._activePointers.values()].includes(productBox)) {
-            productBox.classList.remove(this.options.activeClass);
-            this._cancelHover(productBox);
-        }
-
-        if (productBox === this._observedProductBox) {
-            this._observeMostRecentActiveProductBox();
+            this._releaseProductBox(productBox);
         }
     }
 
     _observeProductBox(productBox) {
-        if (productBox === this._observedProductBox) {
+        if (this._productBoxObservers.has(productBox)) {
             return;
         }
 
-        this._mutationObserver.disconnect();
-        this._observedProductBox = productBox;
-        this._mutationObserver.observe(productBox, {
+        const observer = new MutationObserver(() => this._onProductBoxMutations(productBox));
+
+        observer.observe(productBox, {
             childList: true,
             subtree: true,
         });
-        this._synchronizeProductBox(productBox);
+        this._productBoxObservers.set(productBox, observer);
     }
 
-    _stopObservingProductBox() {
-        this._mutationObserver.disconnect();
-        this._observedProductBox = null;
-    }
+    _unobserveProductBox(productBox) {
+        const observer = this._productBoxObservers.get(productBox);
 
-    _observeMostRecentActiveProductBox() {
-        const activeProductBoxes = [...this._activePointers.values()].reverse();
-        const productBox = activeProductBoxes.find((candidate) => (
-            candidate.isConnected
-            && candidate.classList.contains(this.options.activeClass)
-            && !candidate.closest(this.options.searchPageSelector)
-        ));
-
-        if (productBox) {
-            this._observeProductBox(productBox);
+        if (observer === undefined) {
             return;
         }
 
-        this._stopObservingProductBox();
+        observer.disconnect();
+        this._productBoxObservers.delete(productBox);
+    }
+
+    _stopObservingProductBoxes() {
+        this._productBoxObservers.forEach((observer) => observer.disconnect());
+        this._productBoxObservers.clear();
+    }
+
+    _releaseProductBox(productBox) {
+        productBox.classList.remove(this.options.activeClass);
+        this._cancelHover(productBox);
+        this._unobserveProductBox(productBox);
     }
 
     _forgetProductBox(productBox) {
@@ -165,27 +168,43 @@ export default class ProductHoverImagePlugin extends Plugin {
                 this._activePointers.delete(pointerKey);
             }
         });
+        this._releaseTrackedMarker(productBox);
+        this._touchedProductBoxes.delete(productBox);
+        productBox.classList.remove(this.options.loadedClass);
+        this._releaseProductBox(productBox);
     }
 
-    _onProductBoxMutations() {
-        const productBox = this._observedProductBox;
+    _synchronizeObservedProductBoxes() {
+        const productBoxes = new Set([
+            ...this._productBoxObservers.keys(),
+            ...this._touchedProductBoxes,
+        ]);
 
-        if (!productBox) {
-            this._stopObservingProductBox();
+        productBoxes.forEach((productBox) => {
+            if (!productBox.isConnected) {
+                this._forgetProductBox(productBox);
+                return;
+            }
+
+            if (this._productBoxObservers.has(productBox)) {
+                this._onProductBoxMutations(productBox);
+            }
+        });
+    }
+
+    _onProductBoxMutations(productBox) {
+        if (this._isDestroyed || !this._productBoxObservers.has(productBox)) {
             return;
         }
 
         if (!productBox.isConnected || !productBox.classList.contains(this.options.activeClass)) {
             this._forgetProductBox(productBox);
-            this._observeMostRecentActiveProductBox();
             return;
         }
 
         if (productBox.closest(this.options.searchPageSelector)) {
-            productBox.classList.remove(this.options.activeClass);
             productBox.classList.remove(this.options.loadedClass);
             this._forgetProductBox(productBox);
-            this._observeMostRecentActiveProductBox();
             return;
         }
 
@@ -195,20 +214,32 @@ export default class ProductHoverImagePlugin extends Plugin {
     _synchronizeProductBox(productBox) {
         const marker = productBox.querySelector(this.options.markerSelector);
 
+        this._trackMarker(productBox, marker);
+
         if (!marker) {
             productBox.classList.remove(this.options.loadedClass);
             return;
         }
 
         if (!this._isContextEnabled(productBox, marker)) {
-            productBox.classList.remove(this.options.activeClass);
             productBox.classList.remove(this.options.loadedClass);
-            this._cancelHover(productBox);
             this._forgetProductBox(productBox);
             return;
         }
 
         const state = marker.dataset[this.options.stateDataKey];
+        const nativeImage = marker.querySelector('img');
+
+        if (nativeImage) {
+            if (state === 'loading' || state === 'loaded' || state === 'failed') {
+                this._synchronizeBoundImage(productBox, marker);
+                return;
+            }
+
+            productBox.classList.remove(this.options.loadedClass);
+            this._bindImage(productBox, marker, nativeImage, null);
+            return;
+        }
 
         if (state === 'loading' || state === 'loaded' || state === 'failed') {
             return;
@@ -222,6 +253,50 @@ export default class ProductHoverImagePlugin extends Plugin {
         this._materializeFreshMarker(productBox, marker);
     }
 
+    _synchronizeBoundImage(productBox, marker) {
+        const currentImage = marker.querySelector('img');
+
+        if (!currentImage || this._boundImages.get(marker) === currentImage) {
+            return;
+        }
+
+        productBox.classList.remove(this.options.loadedClass);
+        this._bindImage(productBox, marker, currentImage, null);
+    }
+
+    _trackMarker(productBox, marker) {
+        const trackedMarker = this._trackedMarkers.get(productBox) ?? null;
+
+        if (trackedMarker === marker) {
+            return;
+        }
+
+        if (trackedMarker) {
+            this._releaseMarker(trackedMarker);
+        }
+
+        if (marker) {
+            this._trackedMarkers.set(productBox, marker);
+            return;
+        }
+
+        this._trackedMarkers.delete(productBox);
+    }
+
+    _releaseMarker(marker) {
+        this._releaseImageListeners(marker);
+        this._boundImages.delete(marker);
+    }
+
+    _releaseTrackedMarker(productBox) {
+        const marker = this._trackedMarkers.get(productBox);
+
+        if (marker) {
+            this._releaseMarker(marker);
+            this._trackedMarkers.delete(productBox);
+        }
+    }
+
     _scheduleMaterialization(productBox, marker) {
         if (this._pendingHoverTimers.has(productBox)) {
             return;
@@ -231,7 +306,7 @@ export default class ProductHoverImagePlugin extends Plugin {
 
         if (delay === 0) {
             this._readyProductBoxes.add(productBox);
-            this._materializeFreshMarker(productBox, marker);
+            this._synchronizeProductBox(productBox);
             return;
         }
 
@@ -327,6 +402,13 @@ export default class ProductHoverImagePlugin extends Plugin {
     }
 
     _materializeImage(productBox, marker) {
+        const nativeImage = marker.querySelector('img');
+
+        if (nativeImage) {
+            this._bindImage(productBox, marker, nativeImage, null);
+            return;
+        }
+
         const template = marker.querySelector(this.options.templateSelector);
 
         if (!(template instanceof HTMLTemplateElement)) {
@@ -342,23 +424,31 @@ export default class ProductHoverImagePlugin extends Plugin {
             return;
         }
 
+        this._bindImage(productBox, marker, image, fragment);
+    }
+
+    _bindImage(productBox, marker, image, fragment) {
+        this._releaseImageListeners(marker);
+
         const insertedElement = image.parentElement?.tagName === 'PICTURE' ? image.parentElement : image;
         const transitionDuration = this._boundedInteger(marker.dataset.wakoTransitionDuration, 200);
 
         image.style.setProperty(this.options.transitionDurationProperty, `${transitionDuration}ms`);
+        this._boundImages.set(marker, image);
         marker.dataset[this.options.stateDataKey] = 'loading';
         productBox.classList.remove(this.options.loadedClass);
 
-        const listener = { image, onLoad: null, onError: null };
+        const listener = { marker, image, onLoad: null, onError: null };
         const removeListeners = () => {
             image.removeEventListener('load', listener.onLoad);
             image.removeEventListener('error', listener.onError);
             this._pendingImageListeners.delete(listener);
         };
+        const isStale = () => this._isDestroyed || this._boundImages.get(marker) !== image;
         const onLoad = () => {
             removeListeners();
 
-            if (this._isDestroyed) {
+            if (isStale()) {
                 return;
             }
 
@@ -371,7 +461,7 @@ export default class ProductHoverImagePlugin extends Plugin {
         const onError = () => {
             removeListeners();
 
-            if (this._isDestroyed) {
+            if (isStale()) {
                 return;
             }
 
@@ -388,6 +478,37 @@ export default class ProductHoverImagePlugin extends Plugin {
         this._pendingImageListeners.add(listener);
         image.addEventListener('load', onLoad, { once: true });
         image.addEventListener('error', onError, { once: true });
-        marker.append(fragment);
+
+        if (fragment) {
+            marker.append(fragment);
+            return;
+        }
+
+        this._settleCompleteImage(image, onLoad, onError);
+    }
+
+    _settleCompleteImage(image, onLoad, onError) {
+        if (image.complete !== true) {
+            return;
+        }
+
+        if (image.naturalWidth === 0 && image.naturalHeight === 0) {
+            onError();
+            return;
+        }
+
+        onLoad();
+    }
+
+    _releaseImageListeners(marker) {
+        this._pendingImageListeners.forEach((listener) => {
+            if (listener.marker !== marker) {
+                return;
+            }
+
+            listener.image.removeEventListener('load', listener.onLoad);
+            listener.image.removeEventListener('error', listener.onError);
+            this._pendingImageListeners.delete(listener);
+        });
     }
 }

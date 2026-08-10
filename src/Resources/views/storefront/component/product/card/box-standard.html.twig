@@ -96,7 +96,22 @@
     {% endfor %}
 
     {% set hoverMedia = selectedProductMedia ? selectedProductMedia.media : null %}
+    {% set listingConfig = config('WakoProductHoverImage.config.enableListing') %}
+    {% set crossSellingConfig = config('WakoProductHoverImage.config.enableCrossSelling') %}
+    {% set wishlistConfig = config('WakoProductHoverImage.config.enableWishlist') %}
+    {% set cmsConfig = config('WakoProductHoverImage.config.enableCms') %}
+    {% set contextConfig = listingConfig %}
+    {% if crossSelling is defined %}
+        {% set contextConfig = crossSellingConfig %}
+    {% elseif layout == 'wishlist' %}
+        {% set contextConfig = wishlistConfig %}
+    {% elseif element.type|default('') in ['product-box', 'product-slider'] %}
+        {% set contextConfig = cmsConfig %}
+    {% endif %}
+    {% set contextEnabled = contextConfig is same as(null) or contextConfig is same as(true) %}
+
     {% if config('WakoProductHoverImage.config.enabled') is same as(true)
+        and contextEnabled
         and not (currentRoute starts with 'frontend.search.' or currentRoute starts with 'widgets.search.')
         and cover
         and cover.url
@@ -104,6 +119,11 @@
         and cover.getMediaType().getName() === 'IMAGE'
         and hoverMedia
     %}
+        {% set loadingMode = config('WakoProductHoverImage.config.loadingMode') %}
+        {% if loadingMode not in ['lazy', 'on_hover'] %}
+            {% set loadingMode = 'lazy' %}
+        {% endif %}
+
         {% set hoverImageAttributes = {
             class: 'product-image cover-switch wako-product-hover-image is-' ~ displayMode,
             alt: '',
@@ -121,11 +141,6 @@
         {% set transitionDuration = config('WakoProductHoverImage.config.transitionDuration') %}
         {% set transitionDuration = transitionDuration is same as(null) ? 200 : transitionDuration %}
         {% set transitionDuration = transitionDuration < 0 ? 0 : (transitionDuration > 500 ? 500 : transitionDuration) %}
-        {% set listingConfig = config('WakoProductHoverImage.config.enableListing') %}
-        {% set crossSellingConfig = config('WakoProductHoverImage.config.enableCrossSelling') %}
-        {% set wishlistConfig = config('WakoProductHoverImage.config.enableWishlist') %}
-        {% set cmsConfig = config('WakoProductHoverImage.config.enableCms') %}
-
         <div class="wako-product-hover-image-container"
              data-wako-product-hover-image
              data-wako-hover-delay="{{ hoverDelay }}"
@@ -134,14 +149,22 @@
              data-wako-enable-cross-selling="{{ crossSellingConfig is same as(null) or crossSellingConfig is same as(true) ? '1' : '0' }}"
              data-wako-enable-wishlist="{{ wishlistConfig is same as(null) or wishlistConfig is same as(true) ? '1' : '0' }}"
              data-wako-enable-cms="{{ cmsConfig is same as(null) or cmsConfig is same as(true) ? '1' : '0' }}">
-            <template class="wako-product-hover-image-template"
-                      data-wako-product-hover-image-template>
+            {% if loadingMode == 'lazy' %}
                 {% sw_thumbnails 'wako-product-hover-image-thumbnails' with {
                     media: hoverMedia,
                     sizes: sizes,
-                    attributes: hoverImageAttributes
+                    attributes: hoverImageAttributes|merge({ loading: 'lazy' })
                 } %}
-            </template>
+            {% else %}
+                <template class="wako-product-hover-image-template"
+                          data-wako-product-hover-image-template>
+                    {% sw_thumbnails 'wako-product-hover-image-thumbnails' with {
+                        media: hoverMedia,
+                        sizes: sizes,
+                        attributes: hoverImageAttributes
+                    } %}
+                </template>
+            {% endif %}
         </div>
     {% endif %}
 {% endblock %}

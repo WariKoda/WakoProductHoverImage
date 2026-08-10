@@ -18,6 +18,7 @@
 
 .product-box.is-wako-product-hover-image-active.is-wako-product-hover-image-loaded
     .product-image-wrapper:not(.variant-image-switched)
+    [data-wako-product-hover-image-state='loaded']
     .wako-product-hover-image {
     opacity: 1;
 }

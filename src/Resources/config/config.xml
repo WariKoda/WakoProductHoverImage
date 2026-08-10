@@ -9,8 +9,8 @@
             <name>enabled</name>
             <label>Enable product hover images</label>
             <label lang="de-DE">Produkt-Hoverbilder aktivieren</label>
-            <helpText>Images are requested only after an allowed hover with a fine pointer.</helpText>
-            <helpText lang="de-DE">Bilder werden erst nach einem zulässigen Hover mit einem präzisen Zeigegerät angefordert.</helpText>
+            <helpText>Hover images use the configured loading mode and appear only for an allowed fine-pointer hover.</helpText>
+            <helpText lang="de-DE">Hoverbilder verwenden den konfigurierten Lademodus und erscheinen nur bei einem zulässigen Hover mit einem präzisen Zeigegerät.</helpText>
             <defaultValue>false</defaultValue>
         </input-field>
 
@@ -67,12 +67,33 @@
         <title>Interaction and animation</title>
         <title lang="de-DE">Interaktion und Animation</title>
 
+        <input-field type="single-select" cache-relevant="true">
+            <name>loadingMode</name>
+            <label>Loading mode</label>
+            <label lang="de-DE">Lademodus</label>
+            <helpText>“Native lazy loading” lets the browser decide when to request the hover image. The hover delay applies only to “On hover”.</helpText>
+            <helpText lang="de-DE">„Natives Lazy Loading“ lässt den Browser entscheiden, wann das Hoverbild angefordert wird. Die Hover-Verzögerung gilt nur für „Bei Hover“.</helpText>
+            <options>
+                <option>
+                    <id>lazy</id>
+                    <name>Native lazy loading</name>
+                    <name lang="de-DE">Natives Lazy Loading</name>
+                </option>
+                <option>
+                    <id>on_hover</id>
+                    <name>On hover</name>
+                    <name lang="de-DE">Bei Hover</name>
+                </option>
+            </options>
+            <defaultValue>lazy</defaultValue>
+        </input-field>
+
         <input-field type="int" cache-relevant="true">
             <name>hoverDelay</name>
             <label>Hover delay in milliseconds (0–500)</label>
             <label lang="de-DE">Hover-Verzögerung in Millisekunden (0–500)</label>
-            <helpText>Delays materialization and prevents accidental image requests.</helpText>
-            <helpText lang="de-DE">Verzögert die Materialisierung und verhindert unbeabsichtigte Bildanfragen.</helpText>
+            <helpText>Used only with “On hover”; delays materialization and prevents accidental image requests.</helpText>
+            <helpText lang="de-DE">Wird nur bei „Bei Hover“ verwendet; verzögert die Materialisierung und verhindert unbeabsichtigte Bildanfragen.</helpText>
             <defaultValue>100</defaultValue>
             <min>0</min>
             <max>500</max>

@@ -2,8 +2,8 @@
 
 ## Overview
 
-Shopware 6.7 Storefront plugin that lazy-loads a configurable product image on
-an allowed hover over a product box.
+Shopware 6.7 Storefront plugin that loads a configurable product image either
+with native lazy loading or on an allowed hover over a product box.
 
 - Namespace: `WakoProductHoverImage`
 - Composer package: `wako/product-hover-image`
@@ -23,10 +23,12 @@ an allowed hover over a product box.
 - `VariantParentMediaSubscriber` loads parent products in one separate query;
   Shopware forbids reading the product `parent` association directly in
   Sales-Channel criteria.
-- Twig applies the configured strategy and renders the result inside an inert
-  `<template>`.
-- One delegated Storefront plugin on `body` handles hover delay, multiple
-  pointers, dynamic product boxes, marker replacement, and cleanup.
+- Twig applies the configured image-selection and loading strategies. Native
+  lazy loading renders the image directly; loading on hover keeps it inside an
+  inert `<template>`.
+- One delegated Storefront plugin on `body` handles both loading modes, hover
+  delay, multiple pointers, dynamic product boxes, marker replacement, and
+  cleanup.
 
 ## Invariants
 
@@ -34,8 +36,9 @@ an allowed hover over a product box.
   image request.
 - Never add the functionality to search, suggest, or product-detail galleries.
 - Never reset criteria owned by another plugin.
-- Never activate image sources before an allowed pointer hover and configured
-  delay.
+- In `on_hover` mode, never activate image sources before an allowed pointer
+  hover and configured delay. In `lazy` mode, request timing belongs to the
+  browser.
 - Preserve the Wako CSS/data prefix and keep styles neutral.
 - `displayMode` remains Shopware's product-box value and is not a plugin option.
 
@@ -43,8 +46,9 @@ an allowed hover over a product box.
 
 Run PHPUnit, PHPStan, Storefront Jest, ESLint, Stylelint, Twig/container lint,
 and a production Storefront build. Confirm both generated main and lazy chunks
-exist. For release validation, verify in a real browser that no hover image is
-requested before the delay.
+exist. For release validation, verify both modes in a real browser: `on_hover`
+must not request the image before the delay, while `lazy` must use native browser
+lazy loading.
 
 ## Release provenance
 

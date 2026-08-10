@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.1.0 - 2026-08-10
+
+- Added the `loadingMode` setting with native lazy loading as the default and request-on-hover loading as an alternative.
+- Preserved delayed, fine-pointer-only activation and the no-request-before-hover guarantee in `on_hover` mode.
+- Prevented disabled Storefront contexts from rendering or requesting lazy hover images.
+- Improved cleanup and synchronization for multiple pointers and dynamically replaced product boxes.
+
 ## 1.0.1 - 2026-08-09
 
 - Fixed the GitHub Actions ESLint step so it checks the plugin's JavaScript files and fails on warnings.

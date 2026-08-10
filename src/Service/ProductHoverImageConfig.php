@@ -23,6 +23,10 @@ final readonly class ProductHoverImageConfig
 
     public const SELECTION_NEXT_VALID_IMAGE = 'next_valid_image';
 
+    public const LOADING_MODE_LAZY = 'lazy';
+
+    public const LOADING_MODE_ON_HOVER = 'on_hover';
+
     public const VARIANT_INHERIT = 'inherit';
 
     public const VARIANT_ONLY = 'variant_only';
@@ -45,6 +49,11 @@ final readonly class ProductHoverImageConfig
         self::SELECTION_CONFIGURED_POSITION,
         self::SELECTION_CUSTOM_FIELD,
         self::SELECTION_NEXT_VALID_IMAGE,
+    ];
+
+    private const LOADING_MODES = [
+        self::LOADING_MODE_LAZY,
+        self::LOADING_MODE_ON_HOVER,
     ];
 
     private const VARIANT_MODES = [
@@ -106,6 +115,15 @@ final readonly class ProductHoverImageConfig
         return \is_string($value) && \in_array($value, self::VARIANT_MODES, true)
             ? $value
             : self::VARIANT_INHERIT;
+    }
+
+    public function getLoadingMode(?SalesChannelContext $context): string
+    {
+        $value = $this->get($context, 'loadingMode');
+
+        return \is_string($value) && \in_array($value, self::LOADING_MODES, true)
+            ? $value
+            : self::LOADING_MODE_LAZY;
     }
 
     public function getMediaPosition(?SalesChannelContext $context): int
