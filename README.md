@@ -1,8 +1,8 @@
 # WakoProductHoverImage
 
 **Product Hover Image / Produktbild bei Hover** is a Shopware 6.7 Storefront
-plugin by WariKoda. It displays a configurable product image when a visitor
-hovers a product box with a mouse or a hovering pen.
+plugin by WariKoda. It displays a configurable product image when a mouse or
+supported pen hovers over a product box.
 
 ## Demo
 
@@ -15,15 +15,15 @@ Click the preview to watch the MP4 video.
 - Listings, search results, CMS product boxes and sliders, cross-selling, customer wishlist, and guest wishlist
 - Standard, minimal, image, and wishlist product-box layouts
 - Sales-Channel-specific activation and settings
-- Five deterministic image-selection strategies
-- Native lazy loading by default, with optional loading on allowed hover
-- Configurable hover delay for loading on hover and configurable fade duration
+- Five image-selection strategies
+- Native lazy loading or loading after a configurable hover delay
+- Configurable fade duration
 - Separate toggles for listings, CMS elements, cross-selling, and wishlists
 - Variant-only, Shopware-inheritance, and explicit parent-fallback modes
 - Product media selection through the generated `wako_product_hover_image_media_id` custom field
 - No additional HTTP endpoint or product-data request
-- Optional `on_hover` mode guarantees no image request before an allowed hover and its delay
-- Hover overlay is restricted to mouse and hovering-pen interaction; touch and keyboard do not activate it
+- In `on_hover` mode, no image request occurs before a supported hover and its delay
+- Touch and keyboard interaction do not activate the overlay
 - Support for AJAX listings and dynamically replaced product boxes
 - Deterministic media order by `product_media.position`, then `product_media.id`
 - Existing media-association criteria from themes or plugins remain unchanged
@@ -64,56 +64,51 @@ This removes the generated custom-field set and its product assignments. Add
 
 ## Configuration
 
-The `loadingMode` setting controls request timing. Its default, `lazy`, renders
-the image directly with native `loading="lazy"`, so the browser decides when to
-request it. The alternative, `on_hover`, keeps the image inert until an allowed
-hover and the configured hover delay have elapsed.
+The `loadingMode` setting controls when the browser can request the image. The
+default, `lazy`, renders it with native `loading="lazy"`. In `on_hover` mode,
+the image remains inert until a supported hover lasts for the configured delay.
 
 The selection strategy can use:
 
-1. exactly the second media item;
-2. the first valid image different from the cover;
-3. a configured 1-based position in the sorted collection;
-4. the media selected in the product custom field
-   `wako_product_hover_image_media_id`;
-5. the next valid image after the cover.
+1. The exact second media item.
+2. The first valid image different from the cover.
+3. A configured 1-based position in the sorted collection.
+4. The media selected in the product custom field
+   `wako_product_hover_image_media_id`.
+5. The next valid image after the cover.
 
 Media are sorted by `product_media.position` and then `product_media.id`. Cover
 and hover media must have a URL and Shopware media type `IMAGE`. The default
 strategy remains the exact second item and does not silently fall back to a
 third item.
 
-The generated product custom field accepts only a media that is also assigned to
-the product's applicable media collection. This prevents arbitrary media-library
-files from bypassing product assignment and variant rules.
+The generated product custom field accepts only media assigned to the product's
+applicable media collection. Media-library files therefore cannot bypass product
+assignment and variant rules.
 
-Variant handling supports normal Shopware inheritance, variant-owned media only,
-or variant-owned media followed by a separately loaded parent fallback. Parent
-products are fetched in a batched repository query because Shopware deliberately
-forbids reading the product `parent` association directly in sales-channel
-criteria.
+Variant handling supports Shopware inheritance, variant-owned media, or
+variant-owned media with a separately loaded parent fallback. The plugin fetches
+parent products in one batched repository query because Shopware does not allow
+the product `parent` association in Sales Channel criteria.
 
-New media associations are sorted deterministically. They are limited only when
-the selected strategy can be resolved safely with a finite prefix. Existing
-association filters, sorting, limits, fields, offsets, queries, aggregations, and
-states remain unchanged. Partial-field criteria are skipped. These compatibility
-rules can intentionally result in no hover image when another extension supplies
-an incomplete media collection.
+The plugin sorts media associations that it creates. It limits them only when a
+finite prefix can resolve the selected strategy. It does not change existing
+association filters, sorting, limits, fields, offsets, queries, aggregations, or
+states. It also skips partial-field criteria. As a result, no hover image may be
+available when another extension supplies an incomplete media collection.
 
 ## Pointer and image-loading behavior
 
-A single delegated listener handles current and future `.product-box` elements.
-In the default `lazy` mode, image markup is rendered directly with native
-`loading="lazy"`; the browser may therefore request it before any hover. In
-`on_hover` mode, the markup remains in an inert `<template>` and is cloned only
-after the configured delay for an allowed hover. Leaving before that delay
-cancels activation and guarantees that no image request is created.
+A delegated listener handles existing and newly added `.product-box` elements.
+In `lazy` mode, the browser may request the image before any hover. In `on_hover`
+mode, the markup stays in an inert `<template>` until the configured delay has
+elapsed. Moving the pointer away before then cancels activation without creating
+an image request.
 
-In both modes, the overlay appears only after the image has loaded successfully
-and a mouse or pen is hovering without screen contact on a device that reports a
-fine hover pointer. The cover remains visible otherwise. A failed image is
-removed and is not retried during that marker's DOM lifecycle. The fade duration
-is configurable; reduced-motion preferences disable the transition.
+The overlay appears only after the image loads and a fine mouse or pen pointer is
+hovering without screen contact. Otherwise, the cover remains visible. The
+plugin removes failed images and does not retry them during the marker's DOM
+lifecycle. Reduced-motion preferences disable the configured fade transition.
 
 ## Theme and plugin compatibility
 
