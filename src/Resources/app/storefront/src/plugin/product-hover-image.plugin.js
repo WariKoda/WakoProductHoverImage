@@ -5,7 +5,6 @@ export default class ProductHoverImagePlugin extends Plugin {
         productBoxSelector: '.product-box',
         markerSelector: '[data-wako-product-hover-image]',
         templateSelector: '[data-wako-product-hover-image-template]',
-        searchPageSelector: '.search-page',
         activeClass: 'is-wako-product-hover-image-active',
         loadedClass: 'is-wako-product-hover-image-loaded',
         stateDataKey: 'wakoProductHoverImageState',
@@ -75,10 +74,6 @@ export default class ProductHoverImagePlugin extends Plugin {
             return;
         }
 
-        if (productBox.closest(this.options.searchPageSelector)) {
-            return;
-        }
-
         const pointerKey = this._pointerKey(event);
         const previousProductBox = this._activePointers.get(pointerKey);
 
@@ -105,7 +100,7 @@ export default class ProductHoverImagePlugin extends Plugin {
     }
 
     _onPointerOut(event) {
-        if (!this._isAllowedPointer(event)) {
+        if (event.pointerType === 'touch') {
             return;
         }
 
@@ -198,12 +193,6 @@ export default class ProductHoverImagePlugin extends Plugin {
         }
 
         if (!productBox.isConnected || !productBox.classList.contains(this.options.activeClass)) {
-            this._forgetProductBox(productBox);
-            return;
-        }
-
-        if (productBox.closest(this.options.searchPageSelector)) {
-            productBox.classList.remove(this.options.loadedClass);
             this._forgetProductBox(productBox);
             return;
         }
@@ -349,7 +338,7 @@ export default class ProductHoverImagePlugin extends Plugin {
             dataKey = 'wakoEnableCms';
         }
 
-        return marker.dataset[dataKey] !== '0';
+        return marker.dataset[dataKey] === '1';
     }
 
     _boundedInteger(value, fallback) {

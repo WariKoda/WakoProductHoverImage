@@ -112,7 +112,7 @@
 
     {% if config('WakoProductHoverImage.config.enabled') is same as(true)
         and contextEnabled
-        and not (currentRoute starts with 'frontend.search.' or currentRoute starts with 'widgets.search.')
+        and currentRoute not in ['frontend.search.suggest', 'widgets.search.filter']
         and cover
         and cover.url
         and cover.getMediaType()

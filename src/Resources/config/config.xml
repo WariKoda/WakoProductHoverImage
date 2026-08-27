@@ -112,34 +112,42 @@
     </card>
 
     <card>
-        <title>Storefront contexts</title>
-        <title lang="de-DE">Storefront-Kontexte</title>
+        <title>Where hover images are displayed</title>
+        <title lang="de-DE">Anzeigebereiche für Hoverbilder</title>
 
         <input-field type="bool" cache-relevant="true">
             <name>enableListing</name>
-            <label>Category and product listings</label>
-            <label lang="de-DE">Kategorie- und Produktlistings</label>
+            <label>Show hover images in category and search listings</label>
+            <label lang="de-DE">Hoverbilder in Kategorie- und Suchlistings anzeigen</label>
+            <helpText>Applies to product boxes on category pages, product listings, and search result pages.</helpText>
+            <helpText lang="de-DE">Gilt für Produktboxen auf Kategorieseiten, in Produktlistings und auf Suchergebnisseiten.</helpText>
             <defaultValue>true</defaultValue>
         </input-field>
 
         <input-field type="bool" cache-relevant="true">
             <name>enableCrossSelling</name>
-            <label>Cross-selling</label>
-            <label lang="de-DE">Cross-Selling</label>
+            <label>Show hover images in cross-selling</label>
+            <label lang="de-DE">Hoverbilder im Cross-Selling anzeigen</label>
+            <helpText>Applies to cross-selling product boxes on product detail pages.</helpText>
+            <helpText lang="de-DE">Gilt für Cross-Selling-Produktboxen auf Produktdetailseiten.</helpText>
             <defaultValue>true</defaultValue>
         </input-field>
 
         <input-field type="bool" cache-relevant="true">
             <name>enableWishlist</name>
-            <label>Wishlists</label>
-            <label lang="de-DE">Wunschlisten</label>
+            <label>Show hover images in wishlists</label>
+            <label lang="de-DE">Hoverbilder in Wunschlisten anzeigen</label>
+            <helpText>Applies to customer and guest wishlists.</helpText>
+            <helpText lang="de-DE">Gilt für Kunden- und Gast-Wunschlisten.</helpText>
             <defaultValue>true</defaultValue>
         </input-field>
 
         <input-field type="bool" cache-relevant="true">
             <name>enableCms</name>
-            <label>CMS product boxes and product sliders</label>
-            <label lang="de-DE">CMS-Produktboxen und Produkt-Slider</label>
+            <label>Show hover images in CMS product elements</label>
+            <label lang="de-DE">Hoverbilder in CMS-Produktelementen anzeigen</label>
+            <helpText>Applies to CMS product boxes and product sliders.</helpText>
+            <helpText lang="de-DE">Gilt für CMS-Produktboxen und Produkt-Slider.</helpText>
             <defaultValue>true</defaultValue>
         </input-field>
     </card>

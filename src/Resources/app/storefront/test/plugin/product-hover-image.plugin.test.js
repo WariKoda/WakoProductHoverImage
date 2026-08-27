@@ -6,7 +6,11 @@ const productBoxMarkup = `
             <div class="product-image-wrapper">
                 <span class="first-child"></span>
                 <span class="second-child"></span>
-                <div data-wako-product-hover-image>
+                <div data-wako-product-hover-image
+                     data-wako-enable-listing="1"
+                     data-wako-enable-cross-selling="1"
+                     data-wako-enable-wishlist="1"
+                     data-wako-enable-cms="1">
                     <template data-wako-product-hover-image-template>
                         <img class="wako-product-hover-image" src="/hover.jpg" alt="">
                     </template>
@@ -19,7 +23,11 @@ const productBoxMarkup = `
 const replacementCardBodyMarkup = `
     <div class="product-image-wrapper">
         <span class="replacement-child"></span>
-        <div data-wako-product-hover-image>
+        <div data-wako-product-hover-image
+             data-wako-enable-listing="1"
+             data-wako-enable-cross-selling="1"
+             data-wako-enable-wishlist="1"
+             data-wako-enable-cms="1">
             <template data-wako-product-hover-image-template>
                 <img class="wako-product-hover-image" src="/replacement-hover.jpg" alt="">
             </template>
@@ -32,7 +40,11 @@ const lazyProductBoxMarkup = `
         <div class="card-body">
             <div class="product-image-wrapper">
                 <span class="first-child"></span>
-                <div data-wako-product-hover-image>
+                <div data-wako-product-hover-image
+                     data-wako-enable-listing="1"
+                     data-wako-enable-cross-selling="1"
+                     data-wako-enable-wishlist="1"
+                     data-wako-enable-cms="1">
                     <img class="wako-product-hover-image" src="/lazy-hover.jpg" loading="lazy" alt="" aria-hidden="true">
                 </div>
             </div>
@@ -43,7 +55,11 @@ const lazyProductBoxMarkup = `
 const lazyReplacementCardBodyMarkup = `
     <div class="product-image-wrapper">
         <span class="replacement-child"></span>
-        <div data-wako-product-hover-image>
+        <div data-wako-product-hover-image
+             data-wako-enable-listing="1"
+             data-wako-enable-cross-selling="1"
+             data-wako-enable-wishlist="1"
+             data-wako-enable-cms="1">
             <img class="wako-product-hover-image" src="/lazy-replacement.jpg" loading="lazy" alt="" aria-hidden="true">
         </div>
     </div>
@@ -153,6 +169,17 @@ describe('ProductHoverImagePlugin', () => {
         expect(document.querySelector('.wako-product-hover-image')).toBeNull();
     });
 
+    test('deactivates when hover capability disappears before pointerout', () => {
+        const productBox = document.querySelector('.product-box');
+        dispatchPointer(productBox, 'pointerover');
+        plugin._hoverMediaQuery.matches = false;
+
+        dispatchPointer(productBox, 'pointerout');
+
+        expect(plugin._activePointers.size).toBe(0);
+        expect(productBox.classList.contains('is-wako-product-hover-image-active')).toBe(false);
+    });
+
     test('fails closed when matchMedia is unavailable', () => {
         plugin.destroy();
         window.matchMedia = undefined;
@@ -219,6 +246,20 @@ describe('ProductHoverImagePlugin', () => {
             productBox.before(context);
             context.append(productBox);
         }
+
+        dispatchPointer(productBox, 'pointerover');
+
+        expect(document.querySelector('.wako-product-hover-image')).toBeNull();
+        expect(productBox.classList.contains('is-wako-product-hover-image-active')).toBe(false);
+    });
+
+    test.each([
+        ['textual false', 'false'],
+        ['an empty value', ''],
+    ])('fails closed when the listing context contains %s', (description, value) => {
+        const productBox = document.querySelector('.product-box');
+        const marker = document.querySelector('[data-wako-product-hover-image]');
+        marker.dataset.wakoEnableListing = value;
 
         dispatchPointer(productBox, 'pointerover');
 
@@ -395,7 +436,7 @@ describe('ProductHoverImagePlugin', () => {
         expect(productBox.classList.contains('is-wako-product-hover-image-loaded')).toBe(false);
     });
 
-    test('applies the search guard when observed markup moves into a search page', async () => {
+    test('keeps observed markup active when it moves into a search page', async () => {
         const productBox = document.querySelector('.product-box');
         dispatchPointer(productBox, 'pointerover');
         const image = productBox.querySelector('.wako-product-hover-image');
@@ -405,12 +446,12 @@ describe('ProductHoverImagePlugin', () => {
         searchPage.append(productBox);
         await flushMutations();
 
-        expect(productBox.classList.contains('is-wako-product-hover-image-active')).toBe(false);
+        expect(productBox.classList.contains('is-wako-product-hover-image-active')).toBe(true);
         expect(productBox.classList.contains('is-wako-product-hover-image-loaded')).toBe(false);
-        expect(plugin._pendingImageListeners.size).toBe(0);
+        expect(plugin._pendingImageListeners.size).toBe(1);
 
         image.dispatchEvent(new Event('load'));
-        expect(productBox.classList.contains('is-wako-product-hover-image-loaded')).toBe(false);
+        expect(productBox.classList.contains('is-wako-product-hover-image-loaded')).toBe(true);
     });
 
     test('releases an active product box that disconnects from the document', async () => {
@@ -672,12 +713,14 @@ describe('ProductHoverImagePlugin', () => {
         expect(document.querySelectorAll('.wako-product-hover-image')).toHaveLength(1);
     });
 
-    test('ignores product boxes inside a search page', () => {
+    test('supports product boxes inside a search page', () => {
         document.body.innerHTML = `<div class="search-page">${productBoxMarkup}</div>`;
+        const productBox = document.querySelector('.product-box');
 
-        dispatchPointer(document.querySelector('.product-box'), 'pointerover');
+        dispatchPointer(productBox, 'pointerover');
 
-        expect(document.querySelector('.wako-product-hover-image')).toBeNull();
+        expect(document.querySelector('.wako-product-hover-image')).not.toBeNull();
+        expect(productBox.classList.contains('is-wako-product-hover-image-active')).toBe(true);
     });
 
     test('does not react to keyboard focus', () => {
@@ -954,12 +997,14 @@ describe('ProductHoverImagePlugin with native lazy markup', () => {
         expect(productBox.classList.contains('is-wako-product-hover-image-active')).toBe(false);
     });
 
-    test('ignores lazy markup inside a search page', () => {
+    test('supports lazy markup inside a search page', () => {
         document.body.innerHTML = `<div class="search-page">${lazyProductBoxMarkup}</div>`;
+        const productBox = document.querySelector('.product-box');
 
-        dispatchPointer(document.querySelector('.product-box'), 'pointerover');
+        dispatchPointer(productBox, 'pointerover');
 
-        expect(document.querySelector('[data-wako-product-hover-image]').dataset.wakoProductHoverImageState).toBeUndefined();
+        expect(document.querySelector('[data-wako-product-hover-image]').dataset.wakoProductHoverImageState).toBe('loading');
+        expect(productBox.classList.contains('is-wako-product-hover-image-active')).toBe(true);
     });
 
     test('watches a lazy replacement of a box that is not the most recent pointer target', async () => {

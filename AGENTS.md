@@ -15,8 +15,9 @@ with native lazy loading or on an allowed hover over a product box.
 
 - `ProductHoverImageConfig` reads and validates Sales-Channel-aware settings and
   fails closed when the feature cannot be resolved safely.
-- Criteria subscribers cover listing, wishlist, cross-selling, CMS product-box,
-  and CMS product-slider data paths. Search and suggest are always excluded.
+- Criteria subscribers cover listing, search results, wishlist, cross-selling,
+  CMS product-box, and CMS product-slider data paths. Search suggestions and
+  aggregation-only search requests are always excluded.
 - `ProductBoxMediaCriteria` configures a media association only when it creates
   it. Existing filters, sorting, limits, offsets, fields, queries,
   aggregations, and states are never changed.
@@ -34,7 +35,8 @@ with native lazy loading or on an allowed hover over a product box.
 
 - Disabled means no criteria changes, marker markup, lazy chunk loading, or
   image request.
-- Never add the functionality to search, suggest, or product-detail galleries.
+- Never add the functionality to search suggestions, aggregation-only search
+  requests, or product-detail galleries.
 - Never reset criteria owned by another plugin.
 - In `on_hover` mode, never activate image sources before an allowed pointer
   hover and configured delay. In `lazy` mode, request timing belongs to the

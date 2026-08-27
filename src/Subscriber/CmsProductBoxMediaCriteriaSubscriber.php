@@ -40,7 +40,7 @@ final readonly class CmsProductBoxMediaCriteriaSubscriber implements EventSubscr
 
         $salesChannelContext = $resolverContext->getSalesChannelContext();
 
-        if ($this->isSearchRoute($request)
+        if ($this->isUnsupportedSearchRoute($request)
             || !$this->config->isCmsEnabled($salesChannelContext)
             || !$this->config->isEnabled($salesChannelContext)
             || $result === null
@@ -75,11 +75,12 @@ final readonly class CmsProductBoxMediaCriteriaSubscriber implements EventSubscr
         return \is_array($result) ? $result : null;
     }
 
-    private function isSearchRoute(Request $request): bool
+    private function isUnsupportedSearchRoute(Request $request): bool
     {
-        $route = $request->attributes->get('_route');
-
-        return \is_string($route)
-            && (str_starts_with($route, 'frontend.search.') || str_starts_with($route, 'widgets.search.'));
+        return \in_array(
+            $request->attributes->get('_route'),
+            ['frontend.search.suggest', 'widgets.search.filter'],
+            true,
+        );
     }
 }

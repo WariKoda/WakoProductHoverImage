@@ -30,6 +30,7 @@ final readonly class ProductBoxMediaCriteriaSubscriber implements EventSubscribe
     {
         return [
             ProductListingCriteriaEvent::class => ['onProductListingCriteria', self::PRIORITY],
+            ProductSearchCriteriaEvent::class => ['onProductListingCriteria', self::PRIORITY],
             WishListPageProductCriteriaEvent::class => ['onWishListCriteria', self::PRIORITY],
             GuestWishListPageletProductCriteriaEvent::class => ['onGuestWishListCriteria', self::PRIORITY],
             ProductCrossSellingIdsCriteriaEvent::class => ['onCrossSellingIdsCriteria', self::PRIORITY],
@@ -39,9 +40,8 @@ final readonly class ProductBoxMediaCriteriaSubscriber implements EventSubscribe
 
     public function onProductListingCriteria(ProductListingCriteriaEvent $event): void
     {
-        if ($event instanceof ProductSearchCriteriaEvent
-            || $event instanceof ProductSuggestCriteriaEvent
-            || $this->isSearchRoute($event->getRequest())
+        if ($event instanceof ProductSuggestCriteriaEvent
+            || $this->isUnsupportedSearchRoute($event->getRequest())
         ) {
             return;
         }
@@ -112,11 +112,12 @@ final readonly class ProductBoxMediaCriteriaSubscriber implements EventSubscribe
         $this->mediaCriteria->apply($criteria, $this->config->getMediaLimit($context));
     }
 
-    private function isSearchRoute(Request $request): bool
+    private function isUnsupportedSearchRoute(Request $request): bool
     {
-        $route = $request->attributes->get('_route');
-
-        return \is_string($route)
-            && (str_starts_with($route, 'frontend.search.') || str_starts_with($route, 'widgets.search.'));
+        return \in_array(
+            $request->attributes->get('_route'),
+            ['frontend.search.suggest', 'widgets.search.filter'],
+            true,
+        );
     }
 }
