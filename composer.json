@@ -2,7 +2,7 @@
     "name": "wako/product-hover-image",
     "description": "Adds configurable lazy-loaded hover images to Shopware product boxes.",
     "type": "shopware-platform-plugin",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "license": "MIT",
     "authors": [
         {
