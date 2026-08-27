@@ -12,7 +12,7 @@ Click the preview to watch the MP4 video.
 
 ## Features
 
-- Listing, CMS product boxes and sliders, cross-selling, customer wishlist, and guest wishlist
+- Listings, search results, CMS product boxes and sliders, cross-selling, customer wishlist, and guest wishlist
 - Standard, minimal, image, and wishlist product-box layouts
 - Sales-Channel-specific activation and settings
 - Five deterministic image-selection strategies
@@ -29,8 +29,8 @@ Click the preview to watch the MP4 video.
 - Existing media-association criteria from themes or plugins remain unchanged
 - `prefers-reduced-motion` support
 
-Search pages, search suggestions, and product-detail galleries are intentionally
-excluded.
+Search suggestions, aggregation-only search requests, and product-detail
+galleries are intentionally excluded.
 
 ## Requirements
 

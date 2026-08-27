@@ -125,18 +125,33 @@ final class CmsProductBoxMediaCriteriaSubscriberTest extends TestCase
         self::assertFalse($criteria->hasAssociation('media'));
     }
 
-    public function testSearchContextIsIgnoredWithoutConfigLookup(): void
+    public function testSearchPageletContextIsSupported(): void
     {
         $criteria = new Criteria();
-        $systemConfig = $this->createMock(SystemConfigService::class);
-        $systemConfig->expects(self::never())->method('get');
         $request = new Request();
-        $request->attributes->set('_route', 'widgets.search.pagelet');
+        $request->attributes->set('_route', 'widgets.search.pagelet.v2');
         $extension = $this->extension('product-slider', $criteria, $request);
 
-        $this->subscriberWithSystemConfig($systemConfig)->onCmsSlotsDataCollected($extension);
+        $this->subscriber(true)->onCmsSlotsDataCollected($extension);
 
-        self::assertFalse($criteria->hasAssociation('media'));
+        self::assertTrue($criteria->hasAssociation('media'));
+    }
+
+    public function testUnsupportedSearchContextsAreIgnoredWithoutConfigLookup(): void
+    {
+        $systemConfig = $this->createMock(SystemConfigService::class);
+        $systemConfig->expects(self::never())->method('get');
+        $subscriber = $this->subscriberWithSystemConfig($systemConfig);
+
+        foreach (['frontend.search.suggest', 'widgets.search.filter'] as $route) {
+            $criteria = new Criteria();
+            $request = new Request();
+            $request->attributes->set('_route', $route);
+
+            $subscriber->onCmsSlotsDataCollected($this->extension('product-slider', $criteria, $request));
+
+            self::assertFalse($criteria->hasAssociation('media'));
+        }
     }
 
     public function testRepeatedApplicationIsIdempotentForMultipleCriteria(): void

@@ -34,7 +34,10 @@ final class ProductBoxMediaCriteriaSubscriberTest extends TestCase
 
     public function testSubscribedEventsUseLatePriority(): void
     {
-        foreach (ProductBoxMediaCriteriaSubscriber::getSubscribedEvents() as $listener) {
+        $subscribedEvents = ProductBoxMediaCriteriaSubscriber::getSubscribedEvents();
+
+        self::assertArrayHasKey(ProductSearchCriteriaEvent::class, $subscribedEvents);
+        foreach ($subscribedEvents as $listener) {
             self::assertSame(-1000, $listener[1]);
         }
     }
@@ -78,31 +81,52 @@ final class ProductBoxMediaCriteriaSubscriberTest extends TestCase
         self::assertTrue($criteria->hasAssociation('media'));
     }
 
-    public function testSearchListingIsNotChangedAndDoesNotReadConfig(): void
+    public function testSearchPageCriteriaAreExtended(): void
+    {
+        $criteria = new Criteria();
+
+        $this->subscriber(true)->onProductListingCriteria(
+            new ProductSearchCriteriaEvent($this->request('frontend.search.page'), $criteria, $this->context),
+        );
+
+        self::assertTrue($criteria->hasAssociation('media'));
+    }
+
+    public function testSearchPageletCriteriaAreExtended(): void
+    {
+        $criteria = new Criteria();
+
+        $this->subscriber(true)->onProductListingCriteria(
+            new ProductSearchCriteriaEvent($this->request('widgets.search.pagelet.v2'), $criteria, $this->context),
+        );
+
+        self::assertTrue($criteria->hasAssociation('media'));
+    }
+
+    public function testSuggestEventIsIgnoredWithoutConfigLookup(): void
     {
         $criteria = new Criteria();
         $systemConfig = $this->createMock(SystemConfigService::class);
         $systemConfig->expects(self::never())->method('get');
-        $subscriber = $this->subscriberWithSystemConfig($systemConfig);
 
-        $subscriber->onProductListingCriteria(
-            new ProductListingCriteriaEvent($this->request('frontend.search.page'), $criteria, $this->context),
+        $this->subscriberWithSystemConfig($systemConfig)->onProductListingCriteria(
+            new ProductSuggestCriteriaEvent(new Request(), $criteria, $this->context),
         );
 
         self::assertFalse($criteria->hasAssociation('media'));
     }
 
-    public function testDedicatedSearchAndSuggestEventsAreIgnoredWithoutConfigLookup(): void
+    public function testAggregationOnlySearchRouteIsIgnoredWithoutConfigLookup(): void
     {
+        $criteria = new Criteria();
         $systemConfig = $this->createMock(SystemConfigService::class);
         $systemConfig->expects(self::never())->method('get');
-        $subscriber = $this->subscriberWithSystemConfig($systemConfig);
 
-        foreach ([ProductSearchCriteriaEvent::class, ProductSuggestCriteriaEvent::class] as $eventClass) {
-            $criteria = new Criteria();
-            $subscriber->onProductListingCriteria(new $eventClass(new Request(), $criteria, $this->context));
-            self::assertFalse($criteria->hasAssociation('media'));
-        }
+        $this->subscriberWithSystemConfig($systemConfig)->onProductListingCriteria(
+            new ProductSearchCriteriaEvent($this->request('widgets.search.filter'), $criteria, $this->context),
+        );
+
+        self::assertFalse($criteria->hasAssociation('media'));
     }
 
     public function testUnknownListingRouteRemainsSupported(): void
