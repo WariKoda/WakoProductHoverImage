@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## 1.2.0 - 2026-08-27
+
+- Added hover images to regular and AJAX-updated search result listings while keeping search suggestions and aggregation-only filter requests excluded.
+- Fixed pointer-out cleanup when the device's hover capability changes during an active interaction.
+- Hardened Storefront context handling so only explicit enabled flags can activate a hover image.
+- Clarified the context configuration labels and help texts.
+
 ## 1.1.0 - 2026-08-10
 
 - Added the `loadingMode` setting with native lazy loading as the default and request-on-hover loading as an alternative.
